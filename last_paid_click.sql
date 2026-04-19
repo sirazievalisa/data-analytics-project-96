@@ -9,9 +9,12 @@ WITH last_paid_click AS (
     WHERE LOWER(s.medium) != 'organic'
     ORDER BY
         s.visitor_id ASC,
-        s.visit_date DESC
+        s.visit_date DESC,
+        s.source ASC,
+        s.medium ASC,
+        s.campaign ASC
 ),
-    
+
 attributed_leads AS (
     SELECT DISTINCT ON (l.lead_id)
         lpc.visitor_id,
@@ -26,12 +29,16 @@ attributed_leads AS (
         l.status_id
     FROM last_paid_click AS lpc
     LEFT JOIN leads AS l
-        ON 
+        ON
             lpc.visitor_id = l.visitor_id
             AND lpc.visit_date <= l.created_at
+    WHERE l.lead_id IS NOT NULL
     ORDER BY
         l.lead_id ASC,
-        l.created_at ASC
+        lpc.visit_date DESC,
+        lpc.utm_source ASC,
+        lpc.utm_medium ASC,
+        lpc.utm_campaign ASC
 )
 
 SELECT
