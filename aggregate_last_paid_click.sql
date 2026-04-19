@@ -164,7 +164,7 @@ costs_agg AS (
 )
 
 SELECT
-    va.visit_date,
+    TO_CHAR(va.visit_date, 'YYYY-MM-DD') AS visit_date,
     va.visitors_count,
     va.utm_source,
     va.utm_medium,
