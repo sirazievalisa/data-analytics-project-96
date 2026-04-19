@@ -63,8 +63,9 @@ first_lead_after_click AS (
         l.status_id
     FROM last_paid_visits AS lpv
     LEFT JOIN leads AS l
-        ON lpv.visitor_id = l.visitor_id
-        AND lpv.visit_datetime <= l.created_at
+        ON
+            lpv.visitor_id = l.visitor_id
+            AND lpv.visit_datetime <= l.created_at
     ORDER BY
         lpv.visitor_id ASC,
         l.created_at ASC NULLS LAST,
@@ -80,14 +81,16 @@ leads_agg AS (
         COUNT(flac.lead_id) AS leads_count,
         COUNT(
             CASE
-                WHEN flac.closing_reason = 'Успешно реализовано'
+                WHEN
+                    flac.closing_reason = 'Успешно реализовано'
                     OR flac.status_id = 142
                     THEN 1
             END
         ) AS purchases_count,
         SUM(
             CASE
-                WHEN flac.closing_reason = 'Успешно реализовано'
+                WHEN
+                    flac.closing_reason = 'Успешно реализовано'
                     OR flac.status_id = 142
                     THEN flac.amount
             END
@@ -193,3 +196,4 @@ ORDER BY
     va.utm_source ASC,
     va.utm_medium ASC,
     va.utm_campaign ASC;
+
