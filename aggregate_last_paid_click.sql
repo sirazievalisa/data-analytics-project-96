@@ -172,10 +172,10 @@ SELECT
     va.utm_source,
     va.utm_medium,
     va.utm_campaign,
-    COALESCE(la.leads_count, 0) AS leads_count,
-    COALESCE(la.purchases_count, 0) AS purchases_count,
     la.revenue,
-    ca.total_cost
+    ca.total_cost,
+    COALESCE(la.leads_count, 0) AS leads_count,
+    COALESCE(la.purchases_count, 0) AS purchases_count
 FROM visitors_agg AS va
 LEFT JOIN leads_agg AS la
     ON
@@ -196,4 +196,3 @@ ORDER BY
     va.utm_source ASC,
     va.utm_medium ASC,
     va.utm_campaign ASC;
-
