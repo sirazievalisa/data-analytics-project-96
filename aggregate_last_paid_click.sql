@@ -27,11 +27,11 @@ last_paid_visits AS (
         ps.utm_campaign
     FROM paid_sessions AS ps
     ORDER BY
-        ps.visitor_id,
+        ps.visitor_id ASC,
         ps.visit_date DESC,
-        ps.utm_source,
-        ps.utm_medium,
-        ps.utm_campaign
+        ps.utm_source ASC,
+        ps.utm_medium ASC,
+        ps.utm_campaign ASC
 ),
 
 visitors_agg AS (
@@ -63,12 +63,12 @@ first_lead_after_click AS (
         l.status_id
     FROM last_paid_visits AS lpv
     LEFT JOIN leads AS l
-        ON l.visitor_id = lpv.visitor_id
-       AND l.created_at >= lpv.visit_datetime
+        ON lpv.visitor_id = l.visitor_id
+        AND lpv.visit_datetime <= l.created_at
     ORDER BY
-        lpv.visitor_id,
+        lpv.visitor_id ASC,
         l.created_at ASC NULLS LAST,
-        l.lead_id
+        l.lead_id ASC
 ),
 
 leads_agg AS (
@@ -82,14 +82,14 @@ leads_agg AS (
             CASE
                 WHEN flac.closing_reason = 'Успешно реализовано'
                     OR flac.status_id = 142
-                THEN 1
+                    THEN 1
             END
         ) AS purchases_count,
         SUM(
             CASE
                 WHEN flac.closing_reason = 'Успешно реализовано'
                     OR flac.status_id = 142
-                THEN flac.amount
+                    THEN flac.amount
             END
         ) AS revenue
     FROM first_lead_after_click AS flac
@@ -139,22 +139,22 @@ costs_agg AS (
         SUM(t.total_cost) AS total_cost
     FROM (
         SELECT
-            visit_date,
-            utm_source,
-            utm_medium,
-            utm_campaign,
-            total_cost
-        FROM vk_costs
+            vkc.visit_date,
+            vkc.utm_source,
+            vkc.utm_medium,
+            vkc.utm_campaign,
+            vkc.total_cost
+        FROM vk_costs AS vkc
 
         UNION ALL
 
         SELECT
-            visit_date,
-            utm_source,
-            utm_medium,
-            utm_campaign,
-            total_cost
-        FROM ya_costs
+            yac.visit_date,
+            yac.utm_source,
+            yac.utm_medium,
+            yac.utm_campaign,
+            yac.total_cost
+        FROM ya_costs AS yac
     ) AS t
     GROUP BY
         t.visit_date,
@@ -176,14 +176,14 @@ SELECT
 FROM visitors_agg AS va
 LEFT JOIN leads_agg AS la
     ON va.visit_date = la.visit_date
-   AND va.utm_source = la.utm_source
-   AND va.utm_medium = la.utm_medium
-   AND va.utm_campaign = la.utm_campaign
+    AND va.utm_source = la.utm_source
+    AND va.utm_medium = la.utm_medium
+    AND va.utm_campaign = la.utm_campaign
 LEFT JOIN costs_agg AS ca
     ON va.visit_date = ca.visit_date
-   AND va.utm_source = ca.utm_source
-   AND va.utm_medium = ca.utm_medium
-   AND va.utm_campaign = ca.utm_campaign
+    AND va.utm_source = ca.utm_source
+    AND va.utm_medium = ca.utm_medium
+    AND va.utm_campaign = ca.utm_campaign
 ORDER BY
     la.revenue DESC NULLS LAST,
     va.visit_date ASC,
