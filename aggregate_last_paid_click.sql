@@ -164,7 +164,7 @@ costs_agg AS (
 )
 
 SELECT
-    TO_CHAR(va.visit_date, 'YYYY-MM-DD') AS visit_date,
+    va.visit_date,
     va.visitors_count,
     va.utm_source,
     va.utm_medium,
@@ -175,15 +175,17 @@ SELECT
     ca.total_cost
 FROM visitors_agg AS va
 LEFT JOIN leads_agg AS la
-    ON va.visit_date = la.visit_date
-    AND va.utm_source = la.utm_source
-    AND va.utm_medium = la.utm_medium
-    AND va.utm_campaign = la.utm_campaign
+    ON
+        va.visit_date = la.visit_date
+        AND va.utm_source = la.utm_source
+        AND va.utm_medium = la.utm_medium
+        AND va.utm_campaign = la.utm_campaign
 LEFT JOIN costs_agg AS ca
-    ON va.visit_date = ca.visit_date
-    AND va.utm_source = ca.utm_source
-    AND va.utm_medium = ca.utm_medium
-    AND va.utm_campaign = ca.utm_campaign
+    ON
+        va.visit_date = ca.visit_date
+        AND va.utm_source = ca.utm_source
+        AND va.utm_medium = ca.utm_medium
+        AND va.utm_campaign = ca.utm_campaign
 ORDER BY
     la.revenue DESC NULLS LAST,
     va.visit_date ASC,
