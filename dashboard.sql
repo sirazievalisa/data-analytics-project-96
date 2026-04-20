@@ -41,12 +41,46 @@ first_lead_after_click AS (
         l.lead_id ASC
 ),
 
+costs_agg AS (
+    SELECT
+        ads.campaign_date::date AS visit_date,
+        ads.utm_source,
+        ads.utm_medium,
+        ads.utm_campaign,
+        SUM(ads.daily_spent) AS total_cost
+    FROM (
+        SELECT
+            vk.campaign_date,
+            vk.utm_source,
+            vk.utm_medium,
+            vk.utm_campaign,
+            vk.daily_spent
+        FROM vk_ads AS vk
+
+        UNION ALL
+
+        SELECT
+            ya.campaign_date,
+            ya.utm_source,
+            ya.utm_medium,
+            ya.utm_campaign,
+            ya.daily_spent
+        FROM ya_ads AS ya
+    ) AS ads
+    GROUP BY
+        ads.campaign_date::date,
+        ads.utm_source,
+        ads.utm_medium,
+        ads.utm_campaign
+),
+
 aggregate_last_paid_click AS (
     SELECT
         lpc.visit_date,
         lpc.utm_source,
         lpc.utm_medium,
         lpc.utm_campaign,
+        ca.total_cost,
         COUNT(*) AS visitors_count,
         COUNT(flac.lead_id) AS leads_count,
         COUNT(
@@ -65,8 +99,7 @@ aggregate_last_paid_click AS (
                     THEN flac.amount
                 ELSE 0
             END
-        ) AS revenue,
-        ca.total_cost
+        ) AS revenue
     FROM last_paid_click AS lpc
     LEFT JOIN first_lead_after_click AS flac
         ON
@@ -75,38 +108,7 @@ aggregate_last_paid_click AS (
             AND lpc.utm_source = flac.utm_source
             AND lpc.utm_medium = flac.utm_medium
             AND lpc.utm_campaign = flac.utm_campaign
-    LEFT JOIN (
-        SELECT
-            ads.campaign_date::date AS visit_date,
-            ads.utm_source,
-            ads.utm_medium,
-            ads.utm_campaign,
-            SUM(ads.daily_spent) AS total_cost
-        FROM (
-            SELECT
-                vk.campaign_date,
-                vk.utm_source,
-                vk.utm_medium,
-                vk.utm_campaign,
-                vk.daily_spent
-            FROM vk_ads AS vk
-
-            UNION ALL
-
-            SELECT
-                ya.campaign_date,
-                ya.utm_source,
-                ya.utm_medium,
-                ya.utm_campaign,
-                ya.daily_spent
-            FROM ya_ads AS ya
-        ) AS ads
-        GROUP BY
-            ads.campaign_date::date,
-            ads.utm_source,
-            ads.utm_medium,
-            ads.utm_campaign
-    ) AS ca
+    LEFT JOIN costs_agg AS ca
         ON
             lpc.visit_date = ca.visit_date
             AND lpc.utm_source = ca.utm_source
@@ -199,12 +201,46 @@ first_lead_after_click AS (
         l.lead_id ASC
 ),
 
+costs_agg AS (
+    SELECT
+        ads.campaign_date::date AS visit_date,
+        ads.utm_source,
+        ads.utm_medium,
+        ads.utm_campaign,
+        SUM(ads.daily_spent) AS total_cost
+    FROM (
+        SELECT
+            vk.campaign_date,
+            vk.utm_source,
+            vk.utm_medium,
+            vk.utm_campaign,
+            vk.daily_spent
+        FROM vk_ads AS vk
+
+        UNION ALL
+
+        SELECT
+            ya.campaign_date,
+            ya.utm_source,
+            ya.utm_medium,
+            ya.utm_campaign,
+            ya.daily_spent
+        FROM ya_ads AS ya
+    ) AS ads
+    GROUP BY
+        ads.campaign_date::date,
+        ads.utm_source,
+        ads.utm_medium,
+        ads.utm_campaign
+),
+
 aggregate_last_paid_click AS (
     SELECT
         lpc.visit_date,
         lpc.utm_source,
         lpc.utm_medium,
         lpc.utm_campaign,
+        ca.total_cost,
         COUNT(*) AS visitors_count,
         COUNT(flac.lead_id) AS leads_count,
         COUNT(
@@ -223,8 +259,7 @@ aggregate_last_paid_click AS (
                     THEN flac.amount
                 ELSE 0
             END
-        ) AS revenue,
-        ca.total_cost
+        ) AS revenue
     FROM last_paid_click AS lpc
     LEFT JOIN first_lead_after_click AS flac
         ON
@@ -233,38 +268,7 @@ aggregate_last_paid_click AS (
             AND lpc.utm_source = flac.utm_source
             AND lpc.utm_medium = flac.utm_medium
             AND lpc.utm_campaign = flac.utm_campaign
-    LEFT JOIN (
-        SELECT
-            ads.campaign_date::date AS visit_date,
-            ads.utm_source,
-            ads.utm_medium,
-            ads.utm_campaign,
-            SUM(ads.daily_spent) AS total_cost
-        FROM (
-            SELECT
-                vk.campaign_date,
-                vk.utm_source,
-                vk.utm_medium,
-                vk.utm_campaign,
-                vk.daily_spent
-            FROM vk_ads AS vk
-
-            UNION ALL
-
-            SELECT
-                ya.campaign_date,
-                ya.utm_source,
-                ya.utm_medium,
-                ya.utm_campaign,
-                ya.daily_spent
-            FROM ya_ads AS ya
-        ) AS ads
-        GROUP BY
-            ads.campaign_date::date,
-            ads.utm_source,
-            ads.utm_medium,
-            ads.utm_campaign
-    ) AS ca
+    LEFT JOIN costs_agg AS ca
         ON
             lpc.visit_date = ca.visit_date
             AND lpc.utm_source = ca.utm_source
@@ -316,7 +320,6 @@ ORDER BY
     alpc.utm_source ASC,
     alpc.utm_medium ASC,
     alpc.utm_campaign ASC;
-
 
 -- СРОК, ЗА КОТОРЫЙ ЗАКРЫВАЕТСЯ 90% ЛИДОВ ПОСЛЕ ПЕРЕХОДА ПО РЕКЛАМЕ
 
